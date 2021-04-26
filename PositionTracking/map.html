@@ -1,0 +1,105 @@
+<html>
+<head>
+    <style>
+        #map-canvas-{%id%} {
+            height: 0; //Replace
+            width: 0; //Replace
+        }
+    </style>
+    <script>
+        window.useMap = function (id, home, home_icon, tracker, tracker_icon) {
+            let map = {
+                'id': id,
+                'home': home,
+                'home_icon': home_icon,
+                'tracker': tracker,
+                'tracker_icon': tracker_icon
+            };
+
+            // Only load google maps once. Reloading the HTMLBox would load the script multiple times
+            // We also might have multiple maps on the page which would trigger loading multiple times
+            if (typeof (google) === 'undefined') {
+                // Declare a few variables
+                window.google = null; //Just make sure that it is not undefined
+                window.socket = [];
+                window.map = [];
+                window.homeMarker = [];
+                window.trackerMarker = [];
+                window.derferredMaps = [map];
+
+                // Now load the Google Maps script
+                let script = document.createElement("script");
+                script.type = "text/javascript";
+                script.src = "http://maps.googleapis.com/maps/api/js?key={%apikey%}&callback=initMaps";
+                document.getElementsByTagName("head")[0].appendChild(script);
+            } else if (google === null) {
+                // If google maps is still loading put us in the deferred init map
+                window.derferredMaps.push(map);
+            } else {
+                // If google maps is loaded we can initialize it immediately
+                window.initMap(id, home, home_icon, tracker, tracker_icon);
+            }
+        }
+
+        // We will move the marker on feedback from the websocket channel
+        window.moveMapMarker = function (id, latitude, longitude) {
+            let latLng = new google.maps.LatLng(latitude, longitude);
+            window.trackerMarker[id].setPosition(latLng);
+            window.map[id].panTo(latLng);
+        }
+
+        // This needs to be in the global scope for the google init script
+        window.initMaps = function () {
+            for (let map of window.derferredMaps) {
+                window.initMap(map.id, map.home, map.home_icon, map.tracker, map.tracker_icon);
+            }
+        }
+
+        // This will initialize a single map instance
+        window.initMap = function (id, home, home_icon, tracker, tracker_icon) {
+            // Initiate websocket which will deliver continuous position updates
+            // We need to properly map our host/protocol to the websocket address
+            window.socket[id] = new WebSocket(window.location.protocol.replace(/^http/, 'ws') + "//" + window.location.host + "/hook/position_tracking/" + id.toString());
+
+            // Listen for messages
+            window.socket[id].addEventListener('message', function (event) {
+                console.log('GPS', id, event.data);
+                let latLng = JSON.parse(event.data);
+                window.moveMapMarker(id, latLng.latitude, latLng.longitude);
+            });
+
+            // Configure Map
+            let homeLocation = JSON.parse(home);
+            let homeLatLng = new google.maps.LatLng(homeLocation.latitude, homeLocation.longitude);
+            let options = {
+                zoom: 12,
+                center: homeLatLng,
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            };
+            window.map[id] = new google.maps.Map(document.getElementById('map-canvas-' + id.toString()), options);
+
+            // Place our home marker
+            window.homeMarker[id] = new google.maps.Marker({
+                position: homeLatLng,
+                map: window.map[id],
+                icon: 'data:image/png;base64,' + home_icon
+            });
+
+            // Place the tracking marker
+            let trackerLocation = JSON.parse(tracker);
+            let trackerLatLng = new google.maps.LatLng(trackerLocation.latitude, trackerLocation.longitude);
+            window.trackerMarker[id] = new google.maps.Marker({
+                position: trackerLatLng,
+                map: window.map[id],
+                icon: 'data:image/png;base64,' + tracker_icon
+            });
+        }
+
+        // We want to put the placeholder into the string to keep the validator happy
+        useMap(parseInt('{%id%}'), '{%home%}', '{%home_icon%}', '{%tracker%}', '{%tracker_icon%}');
+    </script>
+</head>
+<body>
+<div id="map-canvas-{%id%}"></div>
+</body>
+</html>

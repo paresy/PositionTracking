@@ -1,0 +1,14 @@
+{
+    "id": "{63432084-FE2D-6622-1FCE-DB7FB34527D2}",
+    "name": "PositionTracking",
+    "type": 3,
+    "vendor": "",
+    "aliases": [
+        "Position Tracking"
+    ],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "PST",
+    "url": "https://www.symcon.de"
+}

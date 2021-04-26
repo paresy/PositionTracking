@@ -1,0 +1,57 @@
+{
+    "elements": [
+        {
+            "type": "ValidationTextBox",
+            "name": "APIKey",
+            "caption": "API-Key"
+        },
+        {
+            "type": "SelectVariable",
+            "name": "SourceLatitude",
+            "caption": "Latitude"
+        },
+        {
+            "type": "SelectVariable",
+            "name": "SourceLongitude",
+            "caption": "Longitude"
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "UpdateLimit",
+            "caption": "Limit Update",
+            "suffix": "seconds"
+        },
+        {
+            "type": "ValidationTextBox",
+            "name": "MapWidth",
+            "caption": "Map (Width)"
+        },
+        {
+            "type": "ValidationTextBox",
+            "name": "MapHeight",
+            "caption": "Map (Height)"
+        },
+        {
+            "type": "SelectFile",
+            "name": "HomeIcon",
+            "caption": "Icon (Home)"
+        },
+        {
+            "type": "SelectFile",
+            "name": "TrackerIcon",
+            "caption": "Icon (Tracker)"
+        }
+    ],
+    "actions":[
+        {
+            "type": "SelectLocation",
+            "caption": "Location",
+            "name": "SimulatedLocation"
+        },
+        {
+            "type": "Button",
+            "caption": "Simulate Location",
+            "onClick": "PST_SendLocation($id, $SimulatedLocation);"
+        }
+    ]
+}

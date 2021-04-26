@@ -1,0 +1,17 @@
+{
+    "translations": {
+        "de": {
+            "API-Key": "API-Key",
+            "Latitude": "Breitengrad",
+            "Longitude": "Längengrad",
+            "Limit Update": "Updatelimitierung",
+            "seconds": "Sekunden",
+            "Map (Width)": "Karte (Breite)",
+            "Map (Height)": "Karte (Höhe)",
+            "Icon (Home)": "Icon (Home)",
+            "Icon (Tracker)": "Icon (Tracker)",
+            "Location": "Standort",
+            "Simulate Location": "Standort simulieren"
+        }
+    }
+}
