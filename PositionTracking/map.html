@@ -74,7 +74,10 @@
             let options = {
                 zoom: 12,
                 center: homeLatLng,
-                mapTypeId: google.maps.MapTypeId.ROADMAP
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+                streetViewControl: false,
+                rotateControl: false,
+                fullscreenControl: false
             };
             window.map[id] = new google.maps.Map(document.getElementById('map-canvas-' + id.toString()), options);
 
