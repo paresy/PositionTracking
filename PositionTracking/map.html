@@ -7,6 +7,29 @@
         }
     </style>
     <script>
+        window.detectLocation = function() {
+            // Jump through some hoops and loops for IPSStudio
+            if(window.location.href.substr(0, 5) === "data:") {
+                let data = decodeURI(window.location.href);
+                let match = data.match(/<base href="(http:|https:)\/\/(.*)\/">/);
+                if(match) {
+                    return {
+                        'protocol': match[1],
+                        'host': match[2]
+                    }
+                } else {
+                    document.write("Cannot detect protocol/host on IPSStudio Client!");
+                    throw 'Cannot detect protocol/host on IPSStudio Client!';
+                }
+            // Use the simple way for WebFront + Symcon Apps
+            } else {
+                return {
+                    'protocol': window.location.protocol,
+                    'host': window.location.host
+                }
+            }
+        }
+
         window.useMap = function (id, home, home_icon, tracker, tracker_icon) {
             let map = {
                 'id': id,
@@ -57,9 +80,11 @@
 
         // This will initialize a single map instance
         window.initMap = function (id, home, home_icon, tracker, tracker_icon) {
+            let location = window.detectLocation();
+
             // Initiate websocket which will deliver continuous position updates
             // We need to properly map our host/protocol to the websocket address
-            window.socket[id] = new WebSocket(window.location.protocol.replace(/^http/, 'ws') + "//" + window.location.host + "/hook/position_tracking/" + id.toString());
+            window.socket[id] = new WebSocket(location['protocol'].replace(/^http/, 'ws') + "//" + location['host'] + "/hook/position_tracking/" + id.toString());
 
             // Listen for messages
             window.socket[id].addEventListener('message', function (event) {
