@@ -30,12 +30,11 @@
             }
         }
 
-        window.useMap = function (id, home, home_icon, tracker, tracker_icon) {
+        window.useMap = function (id, home, home_icon, tracker_icon) {
             let map = {
                 'id': id,
                 'home': home,
                 'home_icon': home_icon,
-                'tracker': tracker,
                 'tracker_icon': tracker_icon
             };
 
@@ -60,26 +59,30 @@
                 window.derferredMaps.push(map);
             } else {
                 // If google maps is loaded we can initialize it immediately
-                window.initMap(id, home, home_icon, tracker, tracker_icon);
+                window.initMap(id, home, home_icon, tracker_icon);
             }
         }
 
         // We will move the marker on feedback from the websocket channel
         window.moveMapMarker = function (id, latitude, longitude) {
-            let latLng = new google.maps.LatLng(latitude, longitude);
-            window.trackerMarker[id].setPosition(latLng);
-            window.map[id].panTo(latLng);
+            // If we receive the first message from the websocket faster than
+            // the initial fetch response returns
+            if (typeof (window.trackerMarker[id]) !== 'undefined') {
+                let latLng = new google.maps.LatLng(latitude, longitude);
+                window.trackerMarker[id].setPosition(latLng);
+                window.map[id].panTo(latLng);
+            }
         }
 
         // This needs to be in the global scope for the google init script
         window.initMaps = function () {
             for (let map of window.derferredMaps) {
-                window.initMap(map.id, map.home, map.home_icon, map.tracker, map.tracker_icon);
+                window.initMap(map.id, map.home, map.home_icon, map.tracker_icon);
             }
         }
 
         // This will initialize a single map instance
-        window.initMap = function (id, home, home_icon, tracker, tracker_icon) {
+        window.initMap = function (id, home, home_icon, tracker_icon) {
             let location = window.detectLocation();
 
             // Initiate websocket which will deliver continuous position updates
@@ -113,18 +116,27 @@
                 icon: 'data:image/png;base64,' + home_icon
             });
 
-            // Place the tracking marker
-            let trackerLocation = JSON.parse(tracker);
-            let trackerLatLng = new google.maps.LatLng(trackerLocation.latitude, trackerLocation.longitude);
-            window.trackerMarker[id] = new google.maps.Marker({
-                position: trackerLatLng,
-                map: window.map[id],
-                icon: 'data:image/png;base64,' + tracker_icon
-            });
+            // Fetch initial tracking marker
+            fetch(location['protocol'] + "//" + location['host'] + "/hook/position_tracking/" + id.toString())
+                .then(
+                    function (response) {
+                        response.json().then(function (data) {
+                            // Place the tracking marker
+                            let trackerLocation = JSON.parse(data);
+                            let trackerLatLng = new google.maps.LatLng(trackerLocation.latitude, trackerLocation.longitude);
+                            window.trackerMarker[id] = new google.maps.Marker({
+                                position: trackerLatLng,
+                                map: window.map[id],
+                                icon: 'data:image/png;base64,' + tracker_icon
+                            });
+                            window.map[id].panTo(trackerLatLng);
+                        });
+                    }
+                );
         }
 
         // We want to put the placeholder into the string to keep the validator happy
-        useMap(parseInt('{%id%}'), '{%home%}', '{%home_icon%}', '{%tracker%}', '{%tracker_icon%}');
+        useMap(parseInt('{%id%}'), '{%home%}', '{%home_icon%}', '{%tracker_icon%}');
     </script>
 </head>
 <body>

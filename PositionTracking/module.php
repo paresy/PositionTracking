@@ -77,6 +77,15 @@ class PositionTracking extends WebHookModule
         WC_PushMessage($hcID, '/hook/position_tracking/' . $this->InstanceID, $location);
     }
 
+    /**
+     * This function will be called by the hook control. Visibility should be protected!
+     */
+    protected function ProcessHookData()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($this->GetTrackerLocation());
+    }
+
     private function GetDefaultLocation()
     {
         $lcID = IPS_GetInstanceListByModuleID('{45E97A63-F870-408A-B259-2933F7EABF74}')[0];
@@ -115,7 +124,6 @@ class PositionTracking extends WebHookModule
         $map = str_replace('{%apikey%}', $this->ReadPropertyString('APIKey'), $map);
         $map = str_replace('{%home%}', $this->GetDefaultLocation(), $map);
         $map = str_replace('{%home_icon%}', $this->ReadPropertyString('HomeIcon'), $map);
-        $map = str_replace('{%tracker%}', $this->GetTrackerLocation(), $map);
         $map = str_replace('{%tracker_icon%}', $this->ReadPropertyString('TrackerIcon'), $map);
 
         $this->SetValue('Map', $map);
