@@ -119,12 +119,15 @@ class PositionTracking extends WebHookModule
         $map = str_replace('width: 0; /* Replace Hook */', 'width: ' . $this->ReadPropertyString('MapWidth') . ';', $map);
 
         $map = str_replace('map-canvas-id', 'map-canvas-' . $this->InstanceID, $map);
+        $map = str_replace('map-button-id', 'map-button-' . $this->InstanceID, $map);
 
         $map = str_replace('{%id%}', $this->InstanceID, $map);
         $map = str_replace('{%apikey%}', $this->ReadPropertyString('APIKey'), $map);
         $map = str_replace('{%home%}', $this->GetDefaultLocation(), $map);
         $map = str_replace('{%home_icon%}', $this->ReadPropertyString('HomeIcon'), $map);
         $map = str_replace('{%tracker_icon%}', $this->ReadPropertyString('TrackerIcon'), $map);
+
+        $map = str_replace('{%follow_vehicle%}', $this->Translate('Follow vehicle'), $map);
 
         $this->SetValue('Map', $map);
     }

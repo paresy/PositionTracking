@@ -11,7 +11,8 @@
             "Icon (Home)": "Icon (Home)",
             "Icon (Tracker)": "Icon (Tracker)",
             "Location": "Standort",
-            "Simulate Location": "Standort simulieren"
+            "Simulate Location": "Standort simulieren",
+            "Follow vehicle": "Fahrzeug verfolgen"
         }
     }
 }

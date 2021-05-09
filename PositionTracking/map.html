@@ -5,6 +5,24 @@
             height: 0; /* Replace Hook */
             width: 0; /* Replace Hook */
         }
+
+        .map-button-id {
+            appearance: button;
+            background-color: #fff;
+            border: 0;
+            border-radius: 2px;
+            box-shadow: 0 1px 4px -1px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            margin: 10px;
+            padding: 0 0.5em;
+            height: 40px;
+            font: 400 16px Roboto, Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .map-button-id:hover {
+            background: #ebebeb;
+        }
     </style>
     <script>
         window.detectLocation = function () {
@@ -43,10 +61,12 @@
             if (typeof (google) === 'undefined') {
                 // Declare a few variables
                 window.google = null; //Just make sure that it is not undefined
+                window.mapZoom = 12;
                 window.socket = [];
                 window.map = [];
                 window.homeMarker = [];
                 window.trackerMarker = [];
+                window.trackerMarkerState = [];
                 window.derferredMaps = [map];
 
                 // Now load the Google Maps script
@@ -70,7 +90,11 @@
             if (typeof (window.trackerMarker[id]) !== 'undefined') {
                 let latLng = new google.maps.LatLng(latitude, longitude);
                 window.trackerMarker[id].setPosition(latLng);
-                window.map[id].panTo(latLng);
+
+                // Only pan to the marker if we want to follow the vehicle
+                if (window.trackerMarkerState[id] === "follow") {
+                    window.map[id].panTo(latLng);
+                }
             }
         }
 
@@ -84,6 +108,11 @@
         // This will initialize a single map instance
         window.initMap = function (id, home, home_icon, tracker_icon) {
             let location = window.detectLocation();
+
+            // Close WebSocket, if we are doing a hot-reload
+            if (typeof (window.socket[id]) !== 'undefined') {
+                window.socket[id].close();
+            }
 
             // Initiate websocket which will deliver continuous position updates
             // We need to properly map our host/protocol to the websocket address
@@ -100,7 +129,7 @@
             let homeLocation = JSON.parse(home);
             let homeLatLng = new google.maps.LatLng(homeLocation.latitude, homeLocation.longitude);
             let options = {
-                zoom: 12,
+                zoom: window.mapZoom,
                 center: homeLatLng,
                 mapTypeId: google.maps.MapTypeId.ROADMAP,
                 streetViewControl: false,
@@ -108,6 +137,41 @@
                 fullscreenControl: false
             };
             window.map[id] = new google.maps.Map(document.getElementById('map-canvas-' + id.toString()), options);
+
+            window.disableFollow = (id) => {
+                console.log("Pausing following of vehicle");
+                window.trackerMarkerState[id] = "paused";
+
+                // Only add the button once
+                if (window.map[id].controls[google.maps.ControlPosition.TOP_RIGHT].length === 0) {
+                    const button = document.createElement("button");
+                    button.textContent = "{%follow_vehicle%}";
+                    button.classList.add('map-button-' + id.toString());
+                    button.addEventListener("click", () => {
+                        console.log("Resuming following of vehicle");
+                        window.trackerMarkerState[id] = "follow";
+                        window.map[id].setZoom(window.mapZoom);
+                        window.map[id].panTo(window.trackerMarker[id].position);
+                        window.map[id].controls[google.maps.ControlPosition.TOP_RIGHT].pop();
+                    });
+
+                    window.map[id].controls[google.maps.ControlPosition.TOP_RIGHT].push(button);
+                }
+            };
+
+            // Disable follow after a manual zoom change
+            window.map[id].addListener("zoom_changed", () => {
+                // Bail out if we switch back to the default zoom level
+                if (window.map[id].getZoom() === window.mapZoom) {
+                    return;
+                }
+                window.disableFollow(id);
+            });
+
+            // Disable follow after a drag
+            window.map[id].addListener("dragend", () => {
+                window.disableFollow(id);
+            });
 
             // Place our home marker
             window.homeMarker[id] = new google.maps.Marker({
@@ -129,6 +193,7 @@
                                 map: window.map[id],
                                 icon: 'data:image/png;base64,' + tracker_icon
                             });
+                            window.trackerMarkerState[id] = "follow";
                             window.map[id].panTo(trackerLatLng);
                         });
                     }
