@@ -1,5 +1,5 @@
 # PositionTracking
-Beschreibung des Moduls.
+Erlaubt das Tracken z.B. von Fahrzeugen auf einer interaktiven Google Maps Karte
 
 ### Inhaltsverzeichnis
 
