@@ -28,8 +28,8 @@
         window.detectLocation = function () {
             // Jump through some hoops and loops for IPSStudio (old Clients)
             if (window.location.href.substr(0, 5) === "data:") {
-                let data = decodeURI(window.location.href);
-                let match = data.match(/<base href="(http:|https:)\/\/(.*)\/">/);
+                let data = decodeURIComponent(window.location.href);
+                let match = data.match(/<base href="(http:|https:)\/\/(.*)[\/]*"[\/]*>/);
                 if (match) {
                     return {
                         'protocol': match[1],
@@ -43,7 +43,7 @@
             // For Flutter Web (new Visualization (Web+App) and IPSView WebClient)
             else if (window.location.href === 'about:srcdoc') {
                 let data = document.body.innerHTML;
-                let match = data.match(/<base href="(http:|https:)\/\/(.*)\/">/);
+                let match = data.match(/<base href="(http:|https:)\/\/(.*)[\/]*"[\/]*>/);
                 if (match) {
                     return {
                         'protocol': match[1],
