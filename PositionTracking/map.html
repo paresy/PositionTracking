@@ -40,6 +40,22 @@
                     throw 'Cannot detect protocol/host on IPSStudio Client!';
                 }
             }
+            // For IPSView Windows
+            else if (window.location.href === 'about:blank') {
+                let data = document.head.innerHTML;
+                let match = data.match(/<base href="(http:|https:)\/\/(.*)[\/]*"[\/]*>/);
+                if (match) {
+                    return {
+                        'protocol': match[1],
+                        'host': match[2]
+                    }
+                } else {
+                    return {
+                        'protocol': window.top.location.protocol,
+                        'host': window.top.location.host
+                    }
+                }
+            }
             // For Flutter Web (new Visualization (Web+App) and IPSView WebClient)
             else if (window.location.href === 'about:srcdoc') {
                 let data = document.body.innerHTML;
